@@ -2,24 +2,24 @@ import express from 'express';
 import { Client, Databases } from 'node-appwrite';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-const sdk = require('node-appwrite'); // Importing Appwrite SDK for function execution
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 const app = express();
 const PORT = 3001; // Port different from your frontend
 
-// Appwrite SDK Setup
+// Appwrite SDK Setup using environment variables
 const client = new Client();
 client
-    .setEndpoint('https://cloud.appwrite.io/v1') // Appwrite endpoint
-    .setProject('67150ead0038b4908893') // Your Appwrite project ID
-    .setKey('standard_2331d9a8679e7ad53aea16d73ecee6a53c9956bdbade2260f8085cd91555aaa894970d216916e51675e5278b5d27de401a78824d45985bc623beb3e3db51dafc37a0532708f3481a6cc3e17ebcd1f0dcbcd0d96d5c0668d5ea25be8300955d9c695b264d1ad7020569df25a721c9593447a3f85b7629e718703c859a92a644f6'); // Your Appwrite API key
+    .setEndpoint(process.env.APPWRITE_ENDPOINT) // Appwrite endpoint from .env
+    .setProject(process.env.APPWRITE_PROJECT_ID) // Appwrite project ID from .env
+    .setKey(process.env.APPWRITE_API_KEY); // Appwrite API key from .env
 
 const database = new Databases(client);
-const databaseId = '671730d60011353ebdae'; // Your database ID
-const collectionId = '671730ea002925e55ce6'; // Your collection ID
-
-// Init Appwrite Functions SDK
-const functions = new sdk.Functions(client);
+const databaseId = process.env.APPWRITE_DATABASE_ID; // Database ID from .env
+const collectionId = process.env.APPWRITE_COLLECTION_ID; // Collection ID from .env
 
 // Middleware
 app.use(cors()); // Allow CORS for all origins
@@ -93,26 +93,6 @@ app.delete('/contacts/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting contact:', error);
         res.status(500).send({ message: 'Error deleting contact', error });
-    }
-});
-
-// Execute an Appwrite function
-app.post('/execute-function', async (req, res) => {
-    const { functionId, body, path, method, headers } = req.body;
-
-    try {
-        const response = await functions.createExecution(
-            functionId,  // The ID of the function you want to execute
-            body || '',  // Optional body for the function execution
-            false,       // async flag (optional)
-            path || '',  // Path (optional)
-            method || 'GET',  // Method (optional)
-            headers || {}      // Headers (optional)
-        );
-        res.json(response);
-    } catch (error) {
-        console.error('Error executing function:', error);
-        res.status(500).send({ message: 'Error executing function', error });
     }
 });
 
