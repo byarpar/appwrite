@@ -2,6 +2,7 @@ import express from 'express';
 import { Client, Databases } from 'node-appwrite';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+const sdk = require('node-appwrite'); // Importing Appwrite SDK for function execution
 
 const app = express();
 const PORT = 3001; // Port different from your frontend
@@ -17,13 +18,16 @@ const database = new Databases(client);
 const databaseId = '671730d60011353ebdae'; // Your database ID
 const collectionId = '671730ea002925e55ce6'; // Your collection ID
 
+// Init Appwrite Functions SDK
+const functions = new sdk.Functions(client);
+
 // Middleware
 app.use(cors()); // Allow CORS for all origins
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Fetch all contacts (Read)
-app.get('/contacts', async (req, res) => {
+app.get('/contacts', async (_req, res) => {
     try {
         const response = await database.listDocuments(databaseId, collectionId);
         res.json(response.documents);
@@ -89,6 +93,26 @@ app.delete('/contacts/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting contact:', error);
         res.status(500).send({ message: 'Error deleting contact', error });
+    }
+});
+
+// Execute an Appwrite function
+app.post('/execute-function', async (req, res) => {
+    const { functionId, body, path, method, headers } = req.body;
+
+    try {
+        const response = await functions.createExecution(
+            functionId,  // The ID of the function you want to execute
+            body || '',  // Optional body for the function execution
+            false,       // async flag (optional)
+            path || '',  // Path (optional)
+            method || 'GET',  // Method (optional)
+            headers || {}      // Headers (optional)
+        );
+        res.json(response);
+    } catch (error) {
+        console.error('Error executing function:', error);
+        res.status(500).send({ message: 'Error executing function', error });
     }
 });
 
