@@ -31,13 +31,22 @@ app.get('/contacts', async (_req, res) => {
     try {
         const response = await database.listDocuments(databaseId, collectionId);
         
-        // Check if documents are returned
-        if (response.documents.length === 0) {
-            return res.json({ message: "No contacts found." });
-        }
-        
-        // Return the fetched documents
-        res.json({ contacts: response.documents });
+        // Create the response structure
+        const result = {
+            total: response.total, // Total number of documents
+            documents: response.documents.map(doc => ({
+                name: doc.name,
+                birthday: doc.birthday,
+                $id: doc.$id,
+                $permissions: doc.$permissions,
+                $collectionId: doc.$collectionId,
+                $databaseId: doc.$databaseId,
+                // Add any other fields you need here
+            }))
+        };
+
+        // Return the structured result
+        res.json(result);
     } catch (error) {
         // More detailed error logging
         console.error('Error fetching contacts:', error.message);
