@@ -30,9 +30,18 @@ app.use(bodyParser.json());
 app.get('/contacts', async (_req, res) => {
     try {
         const response = await database.listDocuments(databaseId, collectionId);
-        res.json(response.documents);
+        
+        // Check if documents are returned
+        if (response.documents.length === 0) {
+            return res.json({ message: "No contacts found." });
+        }
+        
+        // Return the fetched documents
+        res.json({ contacts: response.documents });
     } catch (error) {
-        console.error('Error fetching contacts:', error);
+        // More detailed error logging
+        console.error('Error fetching contacts:', error.message);
+        console.error('Full Error:', error);
         res.status(500).send({ message: 'Error fetching contacts', error });
     }
 });
@@ -49,7 +58,8 @@ app.post('/contacts', async (req, res) => {
         );
         res.status(201).json(response);
     } catch (error) {
-        console.error('Error adding contact:', error);
+        console.error('Error adding contact:', error.message);
+        console.error('Full Error:', error);
         res.status(500).send({ message: 'Error adding contact', error });
     }
 });
@@ -61,7 +71,8 @@ app.get('/contacts/:id', async (req, res) => {
         const response = await database.getDocument(databaseId, collectionId, id);
         res.json(response);
     } catch (error) {
-        console.error('Error fetching contact:', error);
+        console.error('Error fetching contact:', error.message);
+        console.error('Full Error:', error);
         res.status(500).send({ message: 'Error fetching contact', error });
     }
 });
@@ -79,7 +90,8 @@ app.put('/contacts/:id', async (req, res) => {
         );
         res.json(response);
     } catch (error) {
-        console.error('Error updating contact:', error);
+        console.error('Error updating contact:', error.message);
+        console.error('Full Error:', error);
         res.status(500).json({ message: 'Error updating contact', error });
     }
 });
@@ -91,9 +103,15 @@ app.delete('/contacts/:id', async (req, res) => {
         await database.deleteDocument(databaseId, collectionId, id);
         res.status(204).send(); // No content after successful deletion
     } catch (error) {
-        console.error('Error deleting contact:', error);
+        console.error('Error deleting contact:', error.message);
+        console.error('Full Error:', error);
         res.status(500).send({ message: 'Error deleting contact', error });
     }
+});
+
+// Basic test route to check if the server is working
+app.get('/', (req, res) => {
+    res.send('API is working!');
 });
 
 // Server setup
