@@ -2,24 +2,20 @@ import express from 'express';
 import { Client, Databases } from 'node-appwrite';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-// Load environment variables from .env file
-dotenv.config();
 
 const app = express();
 const PORT = 3001; // Port different from your frontend
 
-// Appwrite SDK Setup using environment variables
+// Appwrite SDK Setup
 const client = new Client();
 client
-    .setEndpoint(process.env.APPWRITE_ENDPOINT) // Appwrite endpoint from .env
-    .setProject(process.env.APPWRITE_PROJECT_ID) // Appwrite project ID from .env
-    .setKey(process.env.APPWRITE_API_KEY); // Appwrite API key from .env
+    .setEndpoint('https://cloud.appwrite.io/v1') // Appwrite endpoint
+    .setProject('67150ead0038b4908893');
+    
 
 const database = new Databases(client);
-const databaseId = process.env.APPWRITE_DATABASE_ID; // Database ID from .env
-const collectionId = process.env.APPWRITE_COLLECTION_ID; // Collection ID from .env
+const databaseId = '671730d60011353ebdae'; // Your database ID
+const collectionId = '671730ea002925e55ce6'; // Your collection ID
 
 // Middleware
 app.use(cors()); // Allow CORS for all origins
@@ -30,27 +26,9 @@ app.use(bodyParser.json());
 app.get('/contacts', async (_req, res) => {
     try {
         const response = await database.listDocuments(databaseId, collectionId);
-        
-        // Create the response structure
-        const result = {
-            total: response.total, // Total number of documents
-            documents: response.documents.map(doc => ({
-                name: doc.name,
-                birthday: doc.birthday,
-                $id: doc.$id,
-                $permissions: doc.$permissions,
-                $collectionId: doc.$collectionId,
-                $databaseId: doc.$databaseId,
-                // Add any other fields you need here
-            }))
-        };
-
-        // Return the structured result
-        res.json(result);
+        res.json(response.documents);
     } catch (error) {
-        // More detailed error logging
-        console.error('Error fetching contacts:', error.message);
-        console.error('Full Error:', error);
+        console.error('Error fetching contacts:', error);
         res.status(500).send({ message: 'Error fetching contacts', error });
     }
 });
@@ -67,8 +45,7 @@ app.post('/contacts', async (req, res) => {
         );
         res.status(201).json(response);
     } catch (error) {
-        console.error('Error adding contact:', error.message);
-        console.error('Full Error:', error);
+        console.error('Error adding contact:', error);
         res.status(500).send({ message: 'Error adding contact', error });
     }
 });
@@ -80,8 +57,7 @@ app.get('/contacts/:id', async (req, res) => {
         const response = await database.getDocument(databaseId, collectionId, id);
         res.json(response);
     } catch (error) {
-        console.error('Error fetching contact:', error.message);
-        console.error('Full Error:', error);
+        console.error('Error fetching contact:', error);
         res.status(500).send({ message: 'Error fetching contact', error });
     }
 });
@@ -99,8 +75,7 @@ app.put('/contacts/:id', async (req, res) => {
         );
         res.json(response);
     } catch (error) {
-        console.error('Error updating contact:', error.message);
-        console.error('Full Error:', error);
+        console.error('Error updating contact:', error);
         res.status(500).json({ message: 'Error updating contact', error });
     }
 });
@@ -112,15 +87,9 @@ app.delete('/contacts/:id', async (req, res) => {
         await database.deleteDocument(databaseId, collectionId, id);
         res.status(204).send(); // No content after successful deletion
     } catch (error) {
-        console.error('Error deleting contact:', error.message);
-        console.error('Full Error:', error);
+        console.error('Error deleting contact:', error);
         res.status(500).send({ message: 'Error deleting contact', error });
     }
-});
-
-// Basic test route to check if the server is working
-app.get('/', (req, res) => {
-    res.send('API is working!');
 });
 
 // Server setup
